@@ -3,6 +3,9 @@ import requests
 import pytest
 import src.helpers
 import src.data
+import chromedriver_autoinstaller
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from webdriver_manager.firefox import GeckoDriverManager
 
 @pytest.fixture(scope='function')
 def create_user():
@@ -21,9 +24,19 @@ def create_user():
 @pytest.fixture(scope='function', params=['chrome', 'firefox'])
 def driver(request):
     if request.param == 'chrome':
-        web_driver = webdriver.Chrome()
+        # Автоматическая установка ChromeDriver
+        chromedriver_autoinstaller.install()
+
+        # Настройка параметров браузера
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument('--start-maximized')
+
+        # Создание экземпляра драйвера
+        web_driver = webdriver.Chrome(options=chrome_options)
     elif request.param == 'firefox':
-        web_driver = webdriver.Firefox()
+        web_driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
+        web_driver.maximize_window()
+
         
     yield web_driver
     web_driver.quit()
